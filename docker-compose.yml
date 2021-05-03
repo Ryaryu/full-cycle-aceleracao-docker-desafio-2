@@ -14,7 +14,7 @@ services:
     networks:
       - app
   desafio:
-    image: ryaryu/pa-full-cycle-docker-desafio-2
+    image: ryaryu/full-cycle-aceleracao-docker-desafio-2-java
     depends_on:
       mysql:
         condition: service_healthy
