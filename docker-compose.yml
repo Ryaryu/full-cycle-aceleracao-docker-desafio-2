@@ -1,0 +1,45 @@
+version: "2.1"
+
+services:
+  mysql:
+    image: mysql
+    volumes:
+      - "./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+    environment:
+      - "MYSQL_ROOT_PASSWORD=password"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - app
+  desafio:
+    image: ryaryu/pa-full-cycle-docker-desafio-2
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - "QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://mysql:3306/mysql"
+    networks:
+      - app
+      - proxy
+  ngnix:
+    image: nginx:alpine
+    volumes:
+      - "./nginx/:/etc/nginx/"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null http://desafio:8080 || exit 1"]
+      timeout: 10s
+      retries: 10
+    depends_on:
+      - desafio
+    ports:
+      - "8000:8080"
+    networks:
+      - proxy
+
+networks:
+  app:
+    driver: bridge
+  proxy:
+    driver: bridge
